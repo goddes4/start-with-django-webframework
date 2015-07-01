@@ -1,10 +1,20 @@
+from django.conf import settings
+from django.core.urlresolvers import reverse_lazy
 from django.db import models
+from django.forms.models import ModelForm
 
-
+ModelForm
 class Photo(models.Model):
-    image_file = models.ImageField()
-    filtered_image_file = models.ImageField()
-    description = models.TextField(max_length=500)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL)
+    image_file = models.ImageField(upload_to='original/%Y/%m/%d')
+    filtered_image_file = models.ImageField(upload_to='filtered/%Y/%m/%d')
+    description = models.TextField(max_length=500, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def delete(self, using=None):
+        self.image_file.delete()
+        self.filtered_image_file.delete()
+        super().delete(using)
 
+    def get_absolute_url(self):
+        return reverse_lazy('view_single_photo', kwargs={'photo_id': self.id})
